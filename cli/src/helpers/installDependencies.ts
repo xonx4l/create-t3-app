@@ -12,6 +12,26 @@ interface Options {
   projectDir: string;
 }
 
+// Detect package manager
+const detectPackageManager = (): PackageManager | null => {
+
+};
+
+// Add PackageManager field to package.json
+ const addPackageManagerField = (PkgManager:PackageManager): void => {
+   const projectDir = process.cwd();
+   const packageJsonPath = `${projectDir}/package.json`;
+
+ try {
+    const packageJson = require(packageJsonPath);
+    packageJson.packageManager = pkgManager;
+    fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+    console.log(`Added packageManager field: ${pkgManager}`);
+  } catch (error) {
+    console.error(`Error adding packageManager field: ${error}`);
+  }
+};
+
 /*eslint-disable @typescript-eslint/no-floating-promises*/
 const runInstallCommand = async (
   pkgManager: PackageManager,
@@ -72,6 +92,17 @@ const runInstallCommand = async (
 export const installDependencies = async ({ projectDir }: Options) => {
   logger.info("Installing dependencies...");
   const pkgManager = getUserPkgManager();
+
+  // Detect package manager
+  const pkgManager = detectPackageManager();
+  
+  if (pkgManager) {
+    addPackageManagerField(pkgManager);
+  } else {
+    console.error("No recognized package manager found.");
+    return;
+  }
+
 
   const installSpinner = await runInstallCommand(pkgManager, projectDir);
 
